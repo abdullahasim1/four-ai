@@ -81,7 +81,7 @@ const Navbar = () => {
         <Link to="/" className="flex items-center">
           <img 
             src="./src/assets/images/logo.png " 
-            alt="Logo" height={100} width={50}
+            alt="Logo" height={50} width={50}
             className="h-4 w-auto"
             onError={(e) => {
               e.target.onerror = null;
