@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import profileImage from "./assets/images/profile-user.png";
 
 const Navbar = () => {
@@ -9,36 +9,60 @@ const Navbar = () => {
   const [username, setUsername] = useState("User");
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const isLogged = localStorage.getItem("loggedIn") === "true";
-    setLoggedIn(isLogged);
+    // Close mobile menu when route changes
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
-    // Get username from userData if available
-    if (isLogged) {
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        const parsedData = JSON.parse(userData);
-        setUsername(parsedData.username || "User");
+  useEffect(() => {
+    // Check authentication status on component mount and page refresh
+    const checkAuthStatus = () => {
+      const isLogged = localStorage.getItem("loggedIn") === "true";
+      setLoggedIn(isLogged);
+
+      if (isLogged) {
+        const userData = localStorage.getItem("userData");
+        if (userData) {
+          try {
+            const parsedData = JSON.parse(userData);
+            setUsername(parsedData.username || "User");
+          } catch (error) {
+            console.error("Error parsing user data:", error);
+            localStorage.removeItem("userData");
+            localStorage.setItem("loggedIn", "false");
+            setLoggedIn(false);
+          }
+        }
       }
-    }
+    };
 
+    checkAuthStatus();
+
+    const handleStorageChange = () => {
+      checkAuthStatus();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.setItem("loggedIn", "false");
     localStorage.removeItem("userData");
+    localStorage.setItem("loggedIn", "false");
     setLoggedIn(false);
     setIsDropdownOpen(false);
     navigate("/home");
@@ -52,11 +76,18 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="w-full bg-white shadow-lg sticky top-0 z-50 min-h">
-      <div className="max-w-screen-xl mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-blue-600">
-          <img src="./src/assets/images/logo.png" alt="Logo" height={100} width={40} />
-          
+    <nav className="w-full bg-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-screen-xl mx-auto px-4 h-16 flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <img 
+            src="./src/assets/images/logo.png " 
+            alt="Logo" height={100} width={50}
+            className="h-4 w-auto"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '';
+            }}
+          />
         </Link>
 
         {/* Desktop Nav */}
@@ -65,7 +96,11 @@ const Navbar = () => {
             <Link
               key={idx}
               to={item.path}
-              className="text-gray-700 hover:text-blue-500"
+              className={`text-gray-700 hover:text-blue-500 py-5 border-b-2 ${
+                location.pathname === item.path
+                  ? "border-blue-500 text-blue-500"
+                  : "border-transparent"
+              }`}
             >
               {item.title}
             </Link>
@@ -76,12 +111,15 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {!loggedIn ? (
             <>
-              <Link to="/login" className="text-gray-700 hover:text-blue-600">
+              <Link 
+                to="/login" 
+                className="hidden md:block text-gray-700 hover:text-blue-600 font-medium"
+              >
                 Log in
               </Link>
               <Link
                 to="/signup"
-                className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700"
+                className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors font-medium"
               >
                 Sign Up
               </Link>
@@ -90,13 +128,14 @@ const Navbar = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="focus:outline-none"
+                className="focus:outline-none flex items-center gap-2"
               >
                 <img
                   src={profileImage}
-                  className="w-10 h-10 rounded-full border"
+                  className="w-8 h-8 rounded-full border"
                   alt="Avatar"
                 />
+                <span className="hidden md:block text-gray-700">{username}</span>
               </button>
 
               {isDropdownOpen && (
@@ -111,7 +150,6 @@ const Navbar = () => {
                       <h6 className="font-semibold text-gray-800">
                         Hi {username}
                       </h6>
-                      <p className="text-sm text-gray-500"></p>
                     </div>
                   </li>
                   <li>
@@ -145,7 +183,7 @@ const Navbar = () => {
 
           {/* Mobile menu toggle */}
           <button
-            className="md:hidden text-gray-700"
+            className="md:hidden text-gray-700 focus:outline-none"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <svg
@@ -158,7 +196,7 @@ const Navbar = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
+                d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
               />
             </svg>
           </button>
@@ -167,22 +205,36 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-2">
-          {navigation.map((item, idx) => (
-            <Link
-              key={idx}
-              to={item.path}
-              className="block text-gray-700 hover:text-blue-600"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {item.title}
-            </Link>
-          ))}
+        <div className="md:hidden px-4 py-2 bg-white border-t shadow-lg">
+          <div className="space-y-3">
+            {navigation.map((item, idx) => (
+              <Link
+                key={idx}
+                to={item.path}
+                className={`block py-2 text-base ${
+                  location.pathname === item.path
+                    ? "text-blue-600 font-medium"
+                    : "text-gray-700"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.title}
+              </Link>
+            ))}
+            {!loggedIn && (
+              <Link
+                to="/login"
+                className="block py-2 text-base text-gray-700"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Log in
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </nav>
   );
 };
 
-export default Navbar;
-; 
+export default Navbar; 
