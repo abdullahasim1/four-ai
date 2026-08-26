@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaCheck,
@@ -11,6 +12,7 @@ import {
 import Link from "next/link";
 
 import PageShell from "@/components/PageShell";
+import { getSession } from "@/lib/auth-client";
 
 const PLANS = [
   {
@@ -66,6 +68,12 @@ const PLANS = [
 ];
 
 export default function Pricing() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(Boolean(getSession()));
+  }, []);
+
   return (
     <PageShell contentClassName="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div data-reveal className="mx-auto max-w-2xl text-center">
@@ -117,10 +125,10 @@ export default function Pricing() {
             </ul>
 
             <Link
-              href="/signup"
+              href={loggedIn ? "/voice-generator" : "/signup"}
               className={`mt-8 w-full justify-center ${plan.popular ? "btn-primary" : "btn-secondary"}`}
             >
-              Choose {plan.name}
+              {loggedIn ? `Use ${plan.name} benefits` : `Choose ${plan.name}`}
             </Link>
           </motion.div>
         ))}

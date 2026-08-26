@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { FaArrowRight, FaHeadphones, FaImage, FaMagic, FaMicrophoneAlt } from "react-icons/fa";
 
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
+import { getSession } from "@/lib/auth-client";
 
 function SplitLine({ text, className = "" }) {
   return (
@@ -40,8 +41,10 @@ const HIGHLIGHTS = [
 
 export default function Startpage() {
   const titleRef = useRef(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
+    setLoggedIn(Boolean(getSession()));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const chars = titleRef.current?.querySelectorAll("[data-char]");
     if (!chars?.length) return;
@@ -92,9 +95,15 @@ export default function Startpage() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/home" className="btn-primary !px-8 !py-3.5 !text-base">
-            Get started free <FaArrowRight />
-          </Link>
+          {loggedIn ? (
+            <Link href="/voice-generator" className="btn-primary !px-8 !py-3.5 !text-base">
+              Open studio <FaArrowRight />
+            </Link>
+          ) : (
+            <Link href="/signup" className="btn-primary !px-8 !py-3.5 !text-base">
+              Get started free <FaArrowRight />
+            </Link>
+          )}
           <Link href="/features" className="btn-secondary !px-8 !py-3.5 !text-base">
             See what it can do
           </Link>

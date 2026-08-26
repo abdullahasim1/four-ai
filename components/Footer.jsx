@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FaDiscord,
@@ -9,6 +10,7 @@ import {
   FaTwitter,
   FaYoutube,
 } from "react-icons/fa";
+import { getSession } from "@/lib/auth-client";
 
 const COLUMNS = [
   {
@@ -34,8 +36,6 @@ const COLUMNS = [
   {
     title: "Account",
     links: [
-      { label: "Log in", to: "/login" },
-      { label: "Sign up", to: "/signup" },
       { label: "Profile", to: "/profile" },
       { label: "History", to: "/history" },
     ],
@@ -52,6 +52,23 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(Boolean(getSession()));
+    const sync = () => setLoggedIn(Boolean(getSession()));
+    window.addEventListener("fourai:auth-changed", sync);
+    return () => window.removeEventListener("fourai:auth-changed", sync);
+  }, []);
+
+  const accountLinks = loggedIn
+    ? COLUMNS.find((c) => c.title === "Account")?.links || []
+    : [
+        { label: "Log in", to: "/login" },
+        { label: "Sign up", to: "/signup" },
+        ...(COLUMNS.find((c) => c.title === "Account")?.links || []),
+      ];
+
   return (
     <footer className="relative z-10 border-t border-white/5 bg-[#050810]">
       <div data-reveal className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -89,7 +106,7 @@ export default function Footer() {
                 {column.title}
               </h4>
               <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
+                {(column.title === "Account" ? accountLinks : column.links).map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.to}

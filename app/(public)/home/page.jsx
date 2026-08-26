@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaArrowRight,
@@ -16,6 +17,7 @@ import Link from "next/link";
 
 import PageShell from "@/components/PageShell";
 import { VoiceGeneratorTool } from "@/components/VoiceGeneratorTool";
+import { getSession } from "@/lib/auth-client";
 
 const VOICES = [
   {
@@ -53,6 +55,12 @@ const fadeUp = (delay = 0) => ({
 });
 
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(Boolean(getSession()));
+  }, []);
+
   return (
     <PageShell contentClassName="mx-auto max-w-7xl px-4 sm:px-6">
       {/* Hero */}
@@ -161,9 +169,15 @@ export default function Home() {
             Join creators using Four AI to bring their stories, videos and artwork to life.
           </p>
           <div className="relative mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-            <Link href="/signup" className="btn-primary group">
-              Start creating now <FaArrowRight className="transition-transform group-hover:translate-x-1" />
-            </Link>
+            {loggedIn ? (
+              <Link href="/voice-generator" className="btn-primary group">
+                Start creating <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            ) : (
+              <Link href="/signup" className="btn-primary group">
+                Start creating now <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            )}
             <Link href="/pricing" className="btn-secondary">
               View pricing
             </Link>

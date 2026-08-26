@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaArrowRight,
@@ -17,6 +18,7 @@ import Link from "next/link";
 
 import PageShell from "@/components/PageShell";
 import FloatingIcons from "@/components/FloatingIcons";
+import { getSession } from "@/lib/auth-client";
 
 const CORE = [
   { title: "AI voice generation", text: "Generate natural, expressive speech from any text with advanced neural voices.", icon: <FaMicrophone />, gradient: "from-pink-500 to-purple-500" },
@@ -42,6 +44,12 @@ const fadeUp = (delay = 0) => ({
 });
 
 export default function Features() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(Boolean(getSession()));
+  }, []);
+
   return (
     <PageShell
       icons={<FloatingIcons icons={[<FaHeadphones key="1" />, <FaVolumeUp key="2" />, <FaCloud key="3" />]} count={8} />}
@@ -88,11 +96,21 @@ export default function Features() {
 
       {/* CTA */}
       <motion.div {...fadeUp()} className="py-16 text-center">
-        <h2 className="section-title">Try it for yourself</h2>
-        <p className="section-subtitle">Free account. No credit card required.</p>
-        <Link href="/signup" className="btn-primary group mt-8 !px-8 !py-3.5 !text-base">
-          Create free account <FaArrowRight className="transition-transform group-hover:translate-x-1" />
-        </Link>
+        <h2 className="section-title">{loggedIn ? "Jump back in" : "Try it for yourself"}</h2>
+        <p className="section-subtitle">
+          {loggedIn
+            ? "Your studio is ready — pick a tool and start creating."
+            : "Free account. No credit card required."}
+        </p>
+        {loggedIn ? (
+          <Link href="/voice-generator" className="btn-primary group mt-8 !px-8 !py-3.5 !text-base">
+            Open AI Tools <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        ) : (
+          <Link href="/signup" className="btn-primary group mt-8 !px-8 !py-3.5 !text-base">
+            Create free account <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        )}
       </motion.div>
     </PageShell>
   );
