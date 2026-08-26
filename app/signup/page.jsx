@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEnvelope, FaLock, FaUser } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 import PageShell from "@/components/PageShell";
 import { toast } from "@/lib/toast";
 import { authApi } from "@/lib/api";
+import { isLoggedIn, isAdmin } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const PASSWORD_MIN = 6;
@@ -16,6 +18,17 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
+  const [authChecked, setAuthChecked] = useState(false);
+  const router = useRouter();
+
+  // Already logged in? Never show the signup form again
+  useEffect(() => {
+    if (isLoggedIn()) {
+      router.replace(isAdmin() ? "/admin/dashboard" : "/home");
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -49,6 +62,14 @@ export default function Signup() {
       setLoading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <PageShell contentClassName="flex min-h-screen items-center justify-center">
+        <span className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-400/30 border-t-indigo-400" />
+      </PageShell>
+    );
+  }
 
   if (pendingEmail) {
     return (

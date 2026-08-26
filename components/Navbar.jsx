@@ -5,11 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  FaChevronDown,
+  FaClosedCaptioning,
   FaCog,
   FaHistory,
+  FaImage,
+  FaMicrophoneAlt,
   FaSignOutAlt,
+  FaSlidersH,
   FaUser,
   FaUserCircle,
+  FaVolumeUp,
 } from "react-icons/fa";
 import { clearSession, getSession } from "@/lib/auth-client";
 import { authApi } from "@/lib/api";
@@ -21,17 +27,28 @@ const NAV_LINKS = [
   { title: "Team", path: "/team" },
 ];
 
+const AI_TOOLS = [
+  { to: "/voice-generator", label: "Voice Generator", icon: <FaMicrophoneAlt /> },
+  { to: "/text-to-speech", label: "Text to Speech", icon: <FaVolumeUp /> },
+  { to: "/speech-to-text", label: "Speech to Text", icon: <FaClosedCaptioning /> },
+  { to: "/voicechanger", label: "Voice Changer", icon: <FaSlidersH /> },
+  { to: "/imagegenerator", label: "Image Generator", icon: <FaImage /> },
+];
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [session, setSession] = useState(null);
   const dropdownRef = useRef(null);
+  const toolsRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     setMobileOpen(false);
     setDropdownOpen(false);
+    setToolsOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -49,6 +66,9 @@ export default function Navbar() {
     const onClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      if (toolsRef.current && !toolsRef.current.contains(event.target)) {
+        setToolsOpen(false);
       }
     };
     document.addEventListener("mousedown", onClickOutside);
@@ -87,6 +107,42 @@ export default function Navbar() {
               {link.title}
             </Link>
           ))}
+
+          {/* AI Tools dropdown */}
+          <div className="relative" ref={toolsRef}>
+            <button
+              onClick={() => setToolsOpen((v) => !v)}
+              className={`flex items-center gap-1.5 nav-link ${
+                AI_TOOLS.some((t) => t.to === pathname) ? "active" : ""
+              }`}
+            >
+              AI Tools
+              <FaChevronDown className={`text-[10px] transition-transform ${toolsOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence>
+              {toolsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 shadow-2xl shadow-black/50 backdrop-blur-xl"
+                >
+                  {AI_TOOLS.map((tool) => (
+                    <Link
+                      key={tool.to}
+                      href={tool.to}
+                      onClick={() => setToolsOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      <span className="text-indigo-300">{tool.icon}</span>
+                      {tool.label}
+                    </Link>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </nav>
 
         {/* Right side */}
@@ -196,6 +252,23 @@ export default function Navbar() {
                   {link.title}
                 </Link>
               ))}
+
+              <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                AI Tools
+              </p>
+              {AI_TOOLS.map((tool) => (
+                <Link
+                  key={tool.to}
+                  href={tool.to}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                    pathname === tool.to ? "bg-indigo-500/20 text-white" : "text-slate-300"
+                  }`}
+                >
+                  <span className="text-indigo-300">{tool.icon}</span>
+                  {tool.label}
+                </Link>
+              ))}
+
               {!session && (
                 <Link href="/login" className="block rounded-lg px-3 py-2 text-sm text-slate-300">
                   Log in

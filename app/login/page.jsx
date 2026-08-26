@@ -9,7 +9,7 @@ import FloatingIcons from "@/components/FloatingIcons";
 import { toast } from "@/lib/toast";
 import { FaMagic, FaMicrophoneAlt } from "react-icons/fa";
 import { authApi } from "@/lib/api";
-import { setSession } from "@/lib/auth-client";
+import { setSession, isLoggedIn, isAdmin } from "@/lib/auth-client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -27,8 +27,18 @@ function LoginForm() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resending, setResending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Already logged in? Never show the login form again
+  useEffect(() => {
+    if (isLoggedIn()) {
+      router.replace(isAdmin() ? "/admin/dashboard" : "/home");
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
 
   useEffect(() => {
     const status = VERIFIED_MESSAGES[searchParams.get("verified")];
@@ -75,6 +85,14 @@ function LoginForm() {
       setLoading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <PageShell contentClassName="flex min-h-screen items-center justify-center">
+        <span className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-400/30 border-t-indigo-400" />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell icons={<FloatingIcons icons={[<FaMagic key="1" />, <FaMicrophoneAlt key="2" />]} count={6} />} contentClassName="flex min-h-screen items-center justify-center px-4 py-16">
