@@ -1,10 +1,12 @@
-# Four AI - AI-Powered Voice & Image Generation Platform
+# Four AI — AI-Powered Voice & Image Generation Platform
 
-![Four AI](./public/logo.png)
+Four AI is a full-stack **Next.js (App Router)** application that provides
+AI-powered tools for voice generation, text-to-speech, voice changing, and image
+generation — frontend and backend in a single deployable app.
 
-Four AI is a full-stack web application that provides AI-powered tools for voice generation, text-to-speech, voice changing, and image generation. Built with React + Vite on the frontend and Vercel Serverless Functions on the backend, with Neon PostgreSQL as the database.
-
----
+- **Frontend**: React 19 + Next.js 15 + Tailwind CSS 4 + Framer Motion
+- **Backend**: Next.js Route Handlers (`app/api/**`) with Neon PostgreSQL,
+  bcrypt password hashing, and a server-side Hugging Face proxy
 
 ## Live Demo
 
@@ -15,279 +17,166 @@ https://four-ai-dev.vercel.app/
 ## Features
 
 ### AI Tools
-- **Voice Generator** - Generate natural-sounding speech from text using Web Speech API
-- **Text to Speech** - Convert any text to speech with multiple voice and language options
-- **Voice Changer** - Apply audio effects (robot, echo, reverb, distortion, tremolo, lowpass) to uploaded audio files
-- **Image Generator** - Generate images from text prompts using Hugging Face FLUX.1 models
+- **Voice Generator** — type anything and hear it in natural browser voices,
+  with speed control and quick-start presets
+- **Text to Speech** — full TTS studio: language/voice selection, speed,
+  per-voice previews and use-case presets
+- **Voice Changer** — apply effects (robot, echo, reverb, distortion, tremolo,
+  lowpass) to uploaded audio; processed locally in the browser, exported as WAV
+- **Image Generator** — text-to-image via Stable Diffusion. The Hugging Face
+  token stays on the server; the client calls our own `/api/generate/image`
 
 ### User Features
-- User authentication (Signup, Login, Logout)
-- Forgot password / Reset password
-- User profile management (name, email, phone, address, profile picture)
-- User settings (update name, email, password)
-- Usage history tracking
-- Explore voice library
+- Secure signup / login / logout (bcrypt-hashed passwords, DB-backed sessions)
+- Email confirmation on signup — accounts must verify their address before logging in
+- Forgot password flow (invalidates existing sessions)
+- Profile management (name, phone, address, avatar upload with client-side resize)
+- Settings: display name, email change (uniqueness-checked), password change
+- Usage history synced to your account
 
 ### Admin Features
-- Secure admin login via environment variable password
-- View all registered users from database
-- Ban / Unban users
-
-### General
-- Fully responsive design
-- Smooth animations with Framer Motion and GSAP
-- Dark theme on Home page
-- Glassmorphism UI elements
+- Admin logs in via the normal login page (`ADMIN_EMAIL` env var grants the admin role)
+- Live user list straight from PostgreSQL (search + stats)
+- Ban / unban users — banning also kills their active sessions
 
 ---
 
 ## Tech Stack
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 19 | UI Framework |
-| Vite | Build Tool |
-| Tailwind CSS 4 | Styling |
-| Framer Motion | Animations |
-| GSAP | Advanced Animations |
-| React Router DOM 7 | Routing |
-| Axios | HTTP Requests |
-| React Icons | Icons |
-
-### Backend (Vercel Serverless Functions)
-| Technology | Purpose |
-|-----------|---------|
-| Vercel Functions | Serverless API Routes |
-| Neon PostgreSQL | Database |
-| @neondatabase/serverless | Neon DB Client |
-| bcryptjs | Password Hashing |
-
-### External APIs
-| API | Purpose |
-|-----|---------|
-| Hugging Face Inference API | Image Generation (FLUX.1) |
-| Web Speech API | Text to Speech & Voice |
-| Web Audio API | Voice Changer Effects |
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 15 (App Router), React 19, JavaScript |
+| Styling | Tailwind CSS 4, Framer Motion, React Icons |
+| Backend | Next.js Route Handlers (Node runtime) |
+| Database | Neon PostgreSQL via `@neondatabase/serverless` (HTTP driver) |
+| Security | bcryptjs, DB-backed bearer sessions, role-based admin access |
+| AI | Hugging Face Inference API (server-side proxy), Web Speech API, Web Audio API |
 
 ---
 
 ## Project Structure
 
 ```
-four-ai/
-└── frontend/
-    ├── api/                        # Vercel Serverless Backend
-    │   ├── _db.js                  # Neon DB connection
-    │   ├── login.js                # POST /api/login
-    │   ├── signup.js               # POST /api/signup
-    │   ├── forgot-password.js      # POST /api/forgot-password
-    │   └── admin/
-    │       ├── users.js            # GET /api/admin/users
-    │       └── ban-user.js         # POST /api/admin/ban-user
-    ├── public/
-    │   ├── logo.png
-    │   └── logo copy.png
-    ├── src/
-    │   ├── admin/
-    │   │   ├── AdminLogin.jsx
-    │   │   ├── AdminDashboard.jsx
-    │   │   └── UserManagement.jsx
-    │   ├── animations/
-    │   │   ├── homeAnimations.js
-    │   │   ├── loginAnimations.js
-    │   │   ├── motionAnimations.js
-    │   │   ├── signupAnimations.js
-    │   │   ├── signupMotionAnimations.js
-    │   │   └── startpageAnimations.js
-    │   ├── assets/
-    │   │   └── images/
-    │   ├── components/
-    │   │   ├── Navbar.jsx
-    │   │   └── Footer.jsx
-    │   ├── pages/
-    │   │   ├── Startpage.jsx
-    │   │   ├── Home.jsx
-    │   │   ├── Features.jsx
-    │   │   ├── Pricing.jsx
-    │   │   ├── Team.jsx
-    │   │   ├── Login.jsx
-    │   │   ├── Signup.jsx
-    │   │   ├── ForgotPassword.jsx
-    │   │   ├── Logout.jsx
-    │   │   ├── Profile.jsx
-    │   │   ├── Settings.jsx
-    │   │   ├── History.jsx
-    │   │   ├── VoiceGenerator.jsx
-    │   │   ├── TexttoSpeech.jsx
-    │   │   ├── VoiceChanger.jsx
-    │   │   ├── ImageGenerator.jsx
-    │   │   └── ExploreVoiceLibrary.jsx
-    │   ├── utils/
-    │   │   ├── historyTracker.js
-    │   │   └── wavEncoder.js
-    │   ├── api.jsx                 # API config & Hugging Face helpers
-    │   ├── App.jsx                 # Routes
-    │   ├── main.jsx
-    │   ├── index.css
-    │   └── App.css
-    ├── .env.local                  # Local environment variables
-    ├── .env.example                # Example env file
-    ├── vercel.json                 # Vercel deployment config
-    ├── vite.config.js
-    └── package.json
+├── app/
+│   ├── layout.jsx                 # Root layout (fonts, Toaster, metadata)
+│   ├── page.jsx                   # Landing page (/)
+│   ├── globals.css                # Tailwind 4 theme + design system
+│   ├── (public)/                  # Marketing pages (Navbar + Footer)
+│   │   ├── layout.jsx
+│   │   ├── home/
+│   │   ├── features/
+│   │   ├── pricing/
+│   │   ├── team/
+│   │   └── explore-voice-library/
+│   ├── login/ · signup/ · forgot-password/ · logout/
+│   ├── (protected)/               # Auth-guarded pages (client guard + shell)
+│   │   ├── layout.jsx
+│   │   ├── voice-generator/ · text-to-speech/ · voicechanger/ · imagegenerator/
+│   │   └── profile/ · settings/ · history/
+│   ├── admin/dashboard/
+│   └── api/                       # ★ Backend (Route Handlers)
+│       ├── auth/signup|login|logout|forgot-password/route.js
+│       ├── account/profile|email|password|history/route.js
+│       ├── admin/users|ban-user/route.js
+│       ├── generate/image/route.js    # Hugging Face proxy
+│       └── test|db-test/route.js      # Health checks
+├── components/                    # Navbar, Footer, PageShell, Toaster, tools…
+├── lib/
+│   ├── db.js                      # Neon SQL client + schema init
+│   ├── session.js                 # Bearer-token auth helpers (server)
+│   ├── auth-client.js             # localStorage session helpers (client)
+│   ├── api.js                     # fetch wrapper for /api/*
+│   ├── http.js                    # validation / rate-limit utils
+│   ├── toast.js · useSpeech.js · wavEncoder.js
+└── public/                        # logo + team images
 ```
-
----
 
 ## API Routes
 
+All routes live under `/api` in this same app (same-origin — no CORS needed).
+
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/api/signup` | Register new user | None |
-| POST | `/api/login` | Login user | None |
-| POST | `/api/forgot-password` | Reset password | None |
-| GET | `/api/admin/users` | Get all users | Admin Token |
-| POST | `/api/admin/ban-user` | Ban or unban user | Admin Token |
+| POST | `/api/auth/signup` | Register new user (sends confirmation email) | None |
+| POST | `/api/auth/login` | Login (returns session token) | None |
+| GET | `/api/auth/verify-email?token=` | Confirm email from the emailed link | None |
+| POST | `/api/auth/resend-verification` | Resend confirmation email | None |
+| POST | `/api/auth/logout` | Invalidate session | Bearer token |
+| POST | `/api/auth/forgot-password` | Reset password | None |
+| GET/PUT | `/api/account/profile` | Read / update profile | Bearer token |
+| PUT | `/api/account/email` | Change email | Bearer token |
+| PUT | `/api/account/password` | Change password | Bearer token |
+| GET/POST | `/api/account/history` | Read / record activity history | Bearer token |
+| GET | `/api/admin/users?search=` | List users | Bearer token (admin role) |
+| POST | `/api/admin/ban-user` | Ban / unban a user | Bearer token (admin role) |
+| POST | `/api/generate/image` | Generate an image from a prompt | Bearer token |
 
----
+Health checks: `GET /api/test`, `GET /api/db-test`
 
 ## Database Schema
 
+Created automatically on first API request:
+
 ```sql
-CREATE TABLE users (
-  id          SERIAL PRIMARY KEY,
-  name        VARCHAR(255) NOT NULL,
-  email       VARCHAR(255) NOT NULL UNIQUE,
-  password    VARCHAR(255) NOT NULL,       -- bcrypt hashed
-  banned      BOOLEAN DEFAULT FALSE,
-  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+users     (id, name, email UNIQUE, password /* bcrypt */, phone, address,
+           avatar, banned, role /* 'user' | 'admin' */, created_at)
+sessions  (token UUID PK, user_id -> users, created_at)
+activities(id, user_id -> users, feature, description, created_at)
 ```
 
 ---
 
 ## Environment Variables
 
-Create a `.env.local` file in the `frontend/` directory:
+Create `.env.local` in the project root (see `.env.example`):
 
 ```env
-# Hugging Face API Key (for image generation)
-# Get it from: https://huggingface.co/settings/tokens
-VITE_HUGGING_FACE_API_KEY=hf_xxxxxxxxxxxxxxxxxx
-
-# Neon PostgreSQL Connection String
-# Get it from: https://neon.tech dashboard
-DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/neondb?sslmode=require
-
-# Admin Password (for admin panel access)
-VITE_ADMIN_PASSWORD=your_strong_admin_password
+DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require
+ADMIN_EMAIL=admin@example.com
+RESEND_API_KEY=re_xxxxxxxxxx
+HUGGING_FACE_API_KEY=hf_xxxxxxxxxxxxxxxxxx
 ```
 
----
+> No `VITE_*` variables needed anymore — frontend and backend are one app.
 
 ## Local Setup
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Neon account (free)
-- Hugging Face account (free)
-
-### Steps
-
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/four-ai.git
-cd four-ai/frontend
-
-# 2. Install dependencies
 npm install
-
-# 3. Create environment file
-cp .env.example .env.local
-# Fill in your values in .env.local
-
-# 4. Start development server
-npm run dev
+cp .env.example .env.local     # fill in your values
+npm run dev                    # http://localhost:3000
 ```
 
-App will run at `http://localhost:5173`
+## Deployment (Vercel)
 
----
-
-## Deployment on Vercel
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com) → New Project
-3. Import your GitHub repository
-4. Set **Root Directory** to `frontend`
-5. Add these **Environment Variables** in Vercel dashboard:
-
-| Key | Value |
-|-----|-------|
-| `DATABASE_URL` | Your Neon connection string |
-| `VITE_HUGGING_FACE_API_KEY` | Your HuggingFace token |
-| `VITE_ADMIN_PASSWORD` | Your admin password |
-
-6. Click **Deploy**
-
----
+1. Create a free database at [neon.tech](https://neon.tech).
+2. Import this repo into Vercel (auto-detected as Next.js — no config needed).
+3. Add environment variables: `DATABASE_URL`, `ADMIN_EMAIL`, `HUGGING_FACE_API_KEY`.
+4. Deploy. That's it — frontend and API deploy together.
 
 ## Image Generation Models
 
-The app uses Hugging Face models in this priority order:
+Tried in order until one succeeds (all proxied through the backend):
 
-| Priority | Model | Quality |
-|----------|-------|---------|
-| 1st | `black-forest-labs/FLUX.1-schnell` | ⭐⭐⭐⭐⭐ Fastest |
-| 2nd | `black-forest-labs/FLUX.1-dev` | ⭐⭐⭐⭐⭐ Best Quality |
-| 3rd | `stabilityai/stable-diffusion-3.5-large` | ⭐⭐⭐⭐ |
-| 4th | `stabilityai/stable-diffusion-xl-base-1.0` | ⭐⭐⭐ |
-| 5th | `stabilityai/stable-diffusion-2-1` | ⭐⭐ Fallback |
-
----
+1. `stabilityai/stable-diffusion-2-1`
+2. `stabilityai/stable-diffusion-xl-base-1.0`
+3. `runwayml/stable-diffusion-v1-5`
 
 ## Voice Changer Effects
 
-| Effect | Description |
-|--------|-------------|
-| Normal | No effect applied |
-| Robot | High-pass filter with gain boost |
-| Slow | Reduced playback speed |
-| Fast | Increased playback speed |
-| Echo | Delay with feedback |
-| Distortion | Wave shaper distortion |
-| Reverb | Convolution reverb |
-| Tremolo | LFO amplitude modulation |
-| Lowpass | Low-pass filter at 800Hz |
-
----
+Normal · Robot · Slow · Fast · Echo · Distortion · Reverb · Tremolo · Lowpass
 
 ## Pages & Routes
 
 | Route | Page | Access |
 |-------|------|--------|
-| `/` | Start Page | Public |
-| `/home` | Home | Public |
-| `/features` | Features | Public |
-| `/pricing` | Pricing | Public |
-| `/team` | Team | Public |
-| `/login` | Login | Public |
-| `/signup` | Signup | Public |
-| `/forgot-password` | Forgot Password | Public |
-| `/explore-voice-library` | Voice Library | Public |
-| `/voice-generator` | Voice Generator | Auth Required |
-| `/text-to-speech` | Text to Speech | Auth Required |
-| `/voicechanger` | Voice Changer | Auth Required |
-| `/imagegenerator` | Image Generator | Auth Required |
-| `/profile` | Profile | Auth Required |
-| `/settings` | Settings | Auth Required |
-| `/history` | History | Auth Required |
-| `/admin/login` | Admin Login | Admin |
-| `/admin/dashboard` | Admin Dashboard | Admin |
-
----
+| `/` | Landing page | Public |
+| `/home`, `/features`, `/pricing`, `/team` | Marketing pages | Public |
+| `/explore-voice-library` | Voice library | Public |
+| `/login`, `/signup`, `/forgot-password`, `/logout` | Auth | Public |
+| `/voice-generator`, `/text-to-speech`, `/voicechanger`, `/imagegenerator` | AI tools | Auth required |
+| `/profile`, `/settings`, `/history` | Account | Auth required |
+| `/admin/dashboard` | Admin panel | Admin (role-based) |
 
 ## Team
 
@@ -298,9 +187,6 @@ The app uses Hugging Face models in this priority order:
 | M Adeel Gujar | Backend Developer |
 | Malik Mujahid Azam Lail | UI/UX Designer |
 
----
-
 ## License
 
-This project is for educational and personal use.  
-FLUX.1 [dev] model is used under the [FLUX.1 Non-Commercial License](https://huggingface.co/black-forest-labs/FLUX.1-dev/blob/main/LICENSE.md).
+This project is for educational and personal use.
